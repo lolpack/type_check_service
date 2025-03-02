@@ -22,22 +22,42 @@ app.post('/add-types', async (req, res) => {
     return res.status(400).json({ error: "No code provided" });
   }
 
+  // Reject request if input exceeds 1000 characters
+  console.log("code length sent ", code.length)
+  // if (code.length > 2500) {
+  //   return res.status(400).json({ error: "Input too long. Code must not exceed 2500 characters." });
+  // }
+
   try {
-    const prompt = `You are an AI that converts untyped Python code to fully typed Python code using type hints. Given the following Python function, infer and add type annotations:\n\n### Code:\n${code}\n\n### Typed Code:\n`;
+    const prompt = `You are an AI that converts untyped Python code to fully typed Python code using type hints. Given the following Python function, infer and add type annotations. Make sure to import anything needed from the typing module:\n\n### Code:\n${code}\n\n### Typed Code:\n`;
+
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Transfer-Encoding', 'chunked'); // Enables streaming response
 
     const response = await openai.chat.completions.create({
       model: "gpt-4",
       messages: [{ role: "user", content: prompt }],
-      max_tokens: 200,
+      max_tokens: 3000,  // Increased token limit
       temperature: 0.2,
+      // stream: true,  // Enables streaming from OpenAI
     });
 
-    res.json({ typedCode: response.choices[0].message.content.trim() });
+    //maybe stream later
+
+    // res.write('{"typedCode": "');
+
+    // for await (const chunk of stream) {
+    //   res.write(chunk.choices[0].delta?.content || '');
+    // }
+
+    // res.end('"}');
+     res.json({ typedCode: response.choices[0].message.content.trim() });
   } catch (error) {
     console.error("Error processing add-types:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
+
 
 app.post('/explain-error', async (req, res) => {
   const { code, typeError } = req.body;
@@ -57,7 +77,7 @@ app.post('/explain-error', async (req, res) => {
     const response = await openai.chat.completions.create({
       model: "gpt-4",
       messages: [{ role: "user", content: prompt }],
-      max_tokens: 300,
+      max_tokens: 1500, 
       temperature: 0.3,
     });
 
@@ -67,5 +87,7 @@ app.post('/explain-error', async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
+
+
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
