@@ -51,7 +51,15 @@ app.post('/add-types', async (req, res) => {
     // }
 
     // res.end('"}');
-     res.json({ typedCode: response.choices[0].message.content.trim() });
+
+    
+    // Extract response content
+    let typedCode = response.choices[0].message.content.trim();
+
+    // Remove leading and trailing triple backticks (including ```python and ```)
+    typedCode = typedCode.replace(/^```python\s*/, '').replace(/^```\s*/, '').replace(/```$/, '');
+
+    res.json({ typedCode });
   } catch (error) {
     console.error("Error processing add-types:", error);
     res.status(500).json({ error: "Internal Server Error" });

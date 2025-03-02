@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Define API endpoint
-# API_URL="https://type-check-service-b4ffb457dde9.herokuapp.com/add-types"
-API_URL="localhost:5002/add-types"
+API_URL="https://type-check-service-b4ffb457dde9.herokuapp.com/add-types"
+# API_URL="localhost:5002/add-types"
 
 # Define test cases (untyped Python snippets)
 declare -a TEST_CASES=(
