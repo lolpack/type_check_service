@@ -102,7 +102,7 @@ async function getTypedCode(code) {
 // Function to run pyright on a file
 function runPyright(filePath) {
     try {
-        return execSync(`node ../node_modules/pyright/index.js "${filePath}"`, { encoding: "utf-8" });
+        return execSync(`node node_modules/pyright/index.js "${filePath}"`, { encoding: "utf-8" });
     } catch (error) {
         console.error(error)
         return error.stdout || error.stderr;
