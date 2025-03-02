@@ -4,12 +4,13 @@
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
-    "test": "bash test_add_types.sh"
+    "test": "node tests/*"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "axios": "^1.8.1",
     "body-parser": "^1.20.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",

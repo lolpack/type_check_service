@@ -32,7 +32,7 @@ app.post('/add-types', async (req, res) => {
     const prompt = `You are an AI that converts untyped Python code to fully typed Python code using type hints. Given the following Python function, infer and add type annotations. Make sure to import anything needed from the typing module:\n\n### Code:\n${code}\n\n### Typed Code:\n`;
 
     res.setHeader('Content-Type', 'application/json');
-    res.setHeader('Transfer-Encoding', 'chunked'); // Enables streaming response
+    // res.setHeader('Transfer-Encoding', 'chunked'); // Enables streaming response
 
     const response = await openai.chat.completions.create({
       model: "gpt-4",
