@@ -5,7 +5,7 @@ const { execSync } = require("child_process");
 
 // API endpoint
 const API_URL = "https://type-check-service-b4ffb457dde9.herokuapp.com/add-types";
-// const API_URL = "http://localhost:5002/add-types"; // Uncomment for local testing
+// const API_URL = "http://localhost:5002/add-types";
 
 // Test cases (untyped Python snippets)
 const TEST_CASES = [
@@ -91,9 +91,8 @@ async function getTypedCode(code) {
     try {
         console.log(`Calling POST to ${API_URL}`)
         const response = await axios.post(API_URL, { code }, { headers: { "Content-Type": "application/json" } });
-        let typedCode = response.data.typedCode.trim();
 
-        return typedCode;
+        return response.data.typedCode.trim();
     } catch (error) {
         console.error("Error getting typed code:", error.response ? error.response.data : error.message);
         return null;

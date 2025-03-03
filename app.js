@@ -22,7 +22,8 @@ app.post('/add-types', async (req, res) => {
     return res.status(400).json({ error: "No code provided" });
   }
 
-  // Reject request if input exceeds 1000 characters
+  // Reject request if input exceeds 2500 characters
+  // Can make the wait time too slow and also reduce quality of response
   console.log("code length sent ", code.length)
   // if (code.length > 2500) {
   //   return res.status(400).json({ error: "Input too long. Code must not exceed 2500 characters." });
@@ -42,7 +43,7 @@ app.post('/add-types', async (req, res) => {
       // stream: true,  // Enables streaming from OpenAI
     });
 
-    //maybe stream later
+    //maybe stream later for real time updates and better UI
 
     // res.write('{"typedCode": "');
 
@@ -95,7 +96,5 @@ app.post('/explain-error', async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
-
-
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
