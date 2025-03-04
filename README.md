@@ -26,6 +26,19 @@ curl -X POST https://type-check-service-b4ffb457dde9.herokuapp.com/explain-error
          }'
 ```
 
+### /fix-types
+
+Takes `code` and `typeError` to fix a type error
+
+```
+curl -X POST https://type-check-service-b4ffb457dde9.herokuapp.com/explain-error \
+     -H "Content-Type: application/json" \
+     -d '{
+           "code": "def add(a, b): return a + b",
+           "typeError": "Unsupported operand types for +: str and int"
+         }'
+```
+
 ## Deploy
 
 `git push heroku main`
