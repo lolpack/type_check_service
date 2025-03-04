@@ -4,10 +4,11 @@ const axios = require("axios");
 const { execSync } = require("child_process");
 
 // API endpoint
-const API_HOST = "http://localhost:5002";
+const API_HOST = "https://type-check-service-b4ffb457dde9.herokuapp.com";
+// const API_HOST = "http://localhost:5002";
 
 // Directory for storing test results
-const TEST_DIR = path.join(__dirname, "test_results", "fix-types");
+const TEST_DIR = path.join(__dirname, "test_results/fix-types");
 if (!fs.existsSync(TEST_DIR)) {
     fs.mkdirSync(TEST_DIR, { recursive: true });
 }
