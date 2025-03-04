@@ -67,7 +67,6 @@ app.post('/add-types', async (req, res) => {
   }
 });
 
-
 app.post('/explain-error', async (req, res) => {
   const { code, typeError } = req.body;
   console.log(new Date(), 'explain-error request received');
@@ -82,6 +81,35 @@ app.post('/explain-error', async (req, res) => {
 
   try {
     const prompt = `You are a helpful AI and give high quality answers to developers to debug type errors in Python. Given the following code, identify type issues and explain how to fix them. Even if it's not a runtime error, consider a type error that is present to be an error. 'reveal_type' is useful for debugging type checkers so do not mention it in your response unless you are suggesting to use it.\n\n### Code:\n${code}\n### Type Error:\n${typeError}\n\n### Explanation:\n`;
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4",
+      messages: [{ role: "user", content: prompt }],
+      max_tokens: 1500, 
+      temperature: 0.3,
+    });
+
+    res.json({ explanation: response.choices[0].message.content.trim() });
+  } catch (error) {
+    console.error("Error processing explain-error:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+app.post('/fix-types', async (req, res) => {
+  const { code, typeError } = req.body;
+  console.log(new Date(), 'fix_types request received');
+
+  if (!code) {
+    return res.status(400).json({ error: "No code provided" });
+  }
+
+  if (!typeError) {
+    return res.status(400).json({ error: "No typeError provided" });
+  }
+
+  try {
+    const prompt = `You are a helpful AI and help fix type errors in Python code. Given the following Python code and type error, infer and fix the type error. Make sure to import anything needed from the typing module:\n\n### Code:\n${code}\n### Type Error:\n${typeError}\n\n### Explanation:\n`;
 
     const response = await openai.chat.completions.create({
       model: "gpt-4",
