@@ -31,7 +31,7 @@ curl -X POST https://type-check-service-b4ffb457dde9.herokuapp.com/explain-error
 Takes `code` and `typeError` to fix a type error
 
 ```
-curl -X POST https://type-check-service-b4ffb457dde9.herokuapp.com/explain-error \
+curl -X POST https://type-check-service-b4ffb457dde9.herokuapp.com/fix-types \
      -H "Content-Type: application/json" \
      -d '{
            "code": "def add(a, b): return a + b",

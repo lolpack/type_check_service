@@ -80,7 +80,7 @@ app.post('/explain-error', async (req, res) => {
   }
 
   try {
-    const prompt = `You are a helpful AI and give high quality answers to developers to debug type errors in Python. Given the following code, identify type issues and explain how to fix them. Even if it's not a runtime error, consider a type error that is present to be an error. 'reveal_type' is useful for debugging type checkers so do not mention it in your response unless you are suggesting to use it.\n\n### Code:\n${code}\n### Type Error:\n${typeError}\n\n### Explanation:\n`;
+    const prompt = `You are an AI that returns well typed Python code. Given the following code, identify type issues and explain how to fix them. Even if it's not a runtime error, consider a type error that is present to be an error. 'reveal_type' is useful for debugging type checkers so do not mention it in your response unless you are suggesting to use it.\n\n### Code:\n${code}\n### Type Error:\n${typeError}\n\n\n\n### Typed Code:\n`;
 
     const response = await openai.chat.completions.create({
       model: "gpt-4",
@@ -89,7 +89,10 @@ app.post('/explain-error', async (req, res) => {
       temperature: 0.3,
     });
 
-    res.json({ explanation: response.choices[0].message.content.trim() });
+    const gptResponse = response.choices[0].message.content.trim()
+    const typedCode = gptResponse.replace(/^```python\s*/, '').replace(/^```\s*/, '').replace(/```$/, '');
+
+    res.json({ explanation: typedCode });
   } catch (error) {
     console.error("Error processing explain-error:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -98,7 +101,7 @@ app.post('/explain-error', async (req, res) => {
 
 app.post('/fix-types', async (req, res) => {
   const { code, typeError } = req.body;
-  console.log(new Date(), 'fix_types request received');
+  console.log(new Date(), 'fix-types request received');
 
   if (!code) {
     return res.status(400).json({ error: "No code provided" });
@@ -109,7 +112,16 @@ app.post('/fix-types', async (req, res) => {
   }
 
   try {
-    const prompt = `You are a helpful AI and help fix type errors in Python code. Given the following Python code and type error, infer and fix the type error. Make sure to import anything needed from the typing module:\n\n### Code:\n${code}\n### Type Error:\n${typeError}\n\n### Explanation:\n`;
+    const prompt = `You are a helpful AI and help fix type errors in Python code. Given the following Python code and type error, infer and fix the type error. Return only the corrected Python code without any explanations, comments, or formatting hints.
+
+### Code:
+${code}
+
+### Type Error:
+${typeError}
+
+### Fixed Code:
+`;
 
     const response = await openai.chat.completions.create({
       model: "gpt-4",
@@ -118,7 +130,7 @@ app.post('/fix-types', async (req, res) => {
       temperature: 0.3,
     });
 
-    res.json({ explanation: response.choices[0].message.content.trim() });
+    res.json({ code: response.choices[0].message.content.trim() });
   } catch (error) {
     console.error("Error processing explain-error:", error);
     res.status(500).json({ error: "Internal Server Error" });
