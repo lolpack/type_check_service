@@ -163,8 +163,9 @@ def process_iterator(it: Iterator[int]) -> float:
 };
 
 class TypeChecker {
-    constructor(command) {
+    constructor(command, name) {
         this.command = command;
+        this.name = name;
     }
 
     run(filePath) {
@@ -176,8 +177,8 @@ class TypeChecker {
     }
 }
 
-const pyrightChecker = new TypeChecker("node node_modules/pyright/index.js");
-const pyreflyChecker = new TypeChecker("pyrefly check");
+const pyrightChecker = new TypeChecker("node node_modules/pyright/index.js", "pyright");
+const pyreflyChecker = new TypeChecker("pyrefly check", "pyrefly");
 
 async function getTypedCode(code, typeError) {
     try {
@@ -193,6 +194,7 @@ async function getTypedCode(code, typeError) {
 async function runTests(typeChecker = pyrightChecker) {
     console.log("Starting tests...");
     let failureCount = 0;
+    let failedTests = [];
     const totalTests = Object.keys(TEST_CASES).length;
 
     for (const [name, code] of Object.entries(TEST_CASES)) {
@@ -206,7 +208,7 @@ async function runTests(typeChecker = pyrightChecker) {
         fs.writeFileSync(errorFilePath, code);
 
         const pyrightOutputError = typeChecker.run(errorFilePath);
-        fs.appendFileSync(errorFilePath, `\n# --- Type Checker Output ---\n${pyrightOutputError.data}`);
+        fs.appendFileSync(errorFilePath, `\n# --- ${typeChecker.name} Output ---\n${pyrightOutputError.data}`);
 
         const typedCode = await getTypedCode(code, pyrightOutputError);
         if (!typedCode) {
@@ -214,25 +216,30 @@ async function runTests(typeChecker = pyrightChecker) {
             continue;
         }
 
-        const fixedFilePath = path.join(testCaseDir, 'test_result.py');
+        const fixedFilePath = path.join(testCaseDir, `test_result_${typeChecker.name}.py`);
         fs.writeFileSync(fixedFilePath, typedCode);
         
         const pyrightOutput = typeChecker.run(fixedFilePath);
         fs.appendFileSync(fixedFilePath, `\n\n# --- Original Test Case: ${name} ---\n${code}\n`);
-        fs.appendFileSync(fixedFilePath, `\n# --- Type Checker Output ---\n${pyrightOutput.data}`);
+        fs.appendFileSync(fixedFilePath, `\n# --- ${typeChecker.name} Output ---\n${pyrightOutput.data}`);
 
         if (pyrightOutput.isError == true) {
             failureCount++;
-            console.log(`Test: ${name} Failed\n\n# --- Type Checker Output ---\n${pyrightOutput.data}`)
+            failedTests.push(name)
+            console.log(`Test: ${name} Failed\n\n# --- ${typeChecker.name} Output ---\n${pyrightOutput.data}`)
         }
     }
 
     console.log(`All tests completed. Failures: ${failureCount} / ${totalTests}`);
-    return failureCount;
+    return { failureCount, failedTests };
 }
 
-const pyrightErrors = runTests(pyrightChecker);
-const pyreflyErrors = runTests(pyreflyChecker);
+async function main() {
+    const pyrightErrors = await runTests(pyrightChecker);
+    const pyreflyErrors = await runTests(pyreflyChecker);
 
-console.log('pyrightErrors ', pyrightErrors);
-console.log('pyrefly ', pyreflyErrors);
+    console.log('pyright error count ', pyrightErrors.failureCount, '\nfailed tests:\n ', pyrightErrors.failedTests.join('    \n'));
+    console.log('pyrefly error count ', pyreflyErrors.failureCount, '\nfailed tests:\n ', pyreflyErrors.failedTests.join('    \n'));  
+}
+
+main()
