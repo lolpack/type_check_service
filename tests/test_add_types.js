@@ -109,6 +109,17 @@ function runPyright(filePath) {
     }
 }
 
+// Function to run pyright on a file
+function runPyrefly(filePath) {
+    try {
+        return execSync(`pyrefly check "${filePath}"`, { encoding: "utf-8" });
+    } catch (error) {
+        console.error(error)
+        return error.stdout || error.stderr;
+    }
+}
+
+
 // Main function to run tests
 async function runTests() {
     console.log("Starting tests...");
