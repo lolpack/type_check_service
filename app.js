@@ -3,6 +3,8 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const OpenAI = require('openai');
+const path = require('path');
+const fs = require('fs');
 
 const app = express();
 const PORT = process.env.PORT || 5002;
@@ -135,6 +137,27 @@ ${typeError}
     console.error("Error processing explain-error:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
+});
+
+// Serve static frontend files
+app.use(express.static(path.join(__dirname, 'dist')));
+
+// Dynamic example loader
+app.get('/examples/:route', (req, res) => {
+    const routeName = req.params.route;
+    const filePath = path.join(__dirname, 'examples', `${routeName}.js`);
+
+    if (!fs.existsSync(filePath)) {
+        return res.status(404).json({ error: "No examples found for this route" });
+    }
+
+    try {
+        const examples = require(filePath);
+        res.json(examples);
+    } catch (error) {
+        console.error("Error loading examples:", error);
+        res.status(500).json({ error: "Failed to load examples" });
+    }
 });
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

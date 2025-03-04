@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python API Tester</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+        .editor-container {
+            width: 80%;
+            margin-bottom: 20px;
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        .editor {
+            width: 100%;
+            height: 200px;
+            border: 1px solid #ccc;
+        }
+        .buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+        .output {
+            margin-top: 10px;
+            padding: 10px;
+            background: #eef;
+            border-radius: 5px;
+            min-height: 50px;
+            white-space: pre-wrap;
+        }
+        .spinner {
+            display: none;
+            margin-left: 10px;
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: #09f;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        h1 {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Python Types API Tester</h1>
+
+<div class="container">
+    <div class="editor-container">
+        <h2>Add Types</h2>
+        <select id="example-select-add-types" onchange="loadExample('add-types', 'add_types_editor')">
+            <option value="">Select an example...</option>
+        </select>
+        <div id="add_types_editor" class="editor"></div>
+        <div class="buttons">
+            <button onclick="sendRequest('add-types', 'add_types_editor', 'output1', 'spinner1')">Run</button>
+            <div class="spinner" id="spinner1"></div>
+        </div>
+        <div id="output1" class="output"></div>
+    </div>
+
+    <div class="editor-container">
+        <h2>Explain Error</h2>
+        <select id="example-select-explain-errors" onchange="loadExample('explain-errors', 'explain_errors_editor')">
+            <option value="">Select an example...</option>
+        </select>
+        <div id="explain_errors_editor" class="editor"></div>
+        <div class="buttons">
+            <button onclick="sendRequest('explain-error', 'explain_errors_editor', 'output2', 'spinner2')">Run</button>
+            <div class="spinner" id="spinner2"></div>
+        </div>
+        <div id="output2" class="output"></div>
+    </div>
+
+    <div class="editor-container">
+        <h2>Fix Types</h2>
+        <select id="example-select-fix-types" onchange="loadExample('fix-types', 'fix_types_editor')">
+            <option value="">Select an example...</option>
+        </select>
+        <div id="fix_types_editor" class="editor"></div>
+        <div class="buttons">
+            <button onclick="sendRequest('fix-types', 'fix_types_editor', 'output3', 'spinner3')">Run</button>
+            <div class="spinner" id="spinner3"></div>
+        </div>
+        <div id="output3" class="output"></div>
+    </div>
+</div>
+
+<script>
+    const editors = {
+        add_types_editor: ace.edit("add_types_editor"),
+        explain_errors_editor: ace.edit("explain_errors_editor"),
+        fix_types_editor: ace.edit("fix_types_editor")
+    };
+
+    Object.values(editors).forEach(editor => {
+        editor.setTheme("ace/theme/github");
+        editor.session.setMode("ace/mode/python");
+    });
+
+    // Preload examples
+    editors.add_types_editor.setValue(`def greet(name):\n    return "Hello, " + name`);
+    editors.explain_errors_editor.setValue(`def add(a: int, b: str):\n    return a + b`);
+    editors.fix_types_editor.setValue(`def multiply(x: str, y):\n    return x * y`);
+
+    function sendRequest(endpoint, editorId, outputId, spinnerId) {
+        const editor = editors[editorId];
+        const output = document.getElementById(outputId);
+        const spinner = document.getElementById(`${spinnerId}`);
+
+        output.textContent = "";
+        spinner.style.display = "inline-block";
+
+        const requestBody = { code: editor.getValue() };
+        if (endpoint !== 'add-types') {
+            requestBody.typeError = "Example type error";  // Placeholder for testing
+        }
+
+        fetch(`/${endpoint}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(requestBody)
+        })
+        .then(response => response.json())
+        .then(data => {
+            spinner.style.display = "none";
+            output.textContent = data.typedCode || data.explanation || data.code || JSON.stringify(data, null, 2);
+        })
+        .catch(error => {
+            spinner.style.display = "none";
+            output.textContent = "Error: " + error;
+        });
+    }
+
+    function loadExamples(route) {
+            fetch(`/examples/${route}`)
+                .then(response => response.json())
+                .then(data => {
+                    const select = document.getElementById(`example-select-${route}`);
+                    select.innerHTML = '<option value="">Select an example...</option>';
+                    Object.keys(data).forEach(exampleName => {
+                        const option = document.createElement("option");
+                        option.value = data[exampleName];
+                        option.textContent = exampleName;
+                        select.appendChild(option);
+                    });
+                })
+                .catch(error => console.error("Error loading examples:", error));
+        }
+
+        function loadExample(route, editorId) {
+            const select = document.getElementById(`example-select-${route}`);
+            const editor = editors[editorId];
+            if (select.value) {
+                editor.setValue(select.value, -1);
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            loadExamples('add-types');
+            loadExamples('explain-errors');
+            loadExamples('fix-types');
+        });
+</script>
+
+</body>
+</html>
