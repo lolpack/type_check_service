@@ -131,3 +131,7 @@ out
 set_env.sh
 test_results
 tests/test_results
+
+
+# Python
+venv

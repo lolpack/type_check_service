@@ -177,6 +177,7 @@ class TypeChecker {
 }
 
 const pyrightChecker = new TypeChecker("node node_modules/pyright/index.js");
+const pyreflyChecker = new TypeChecker("pyrefly check");
 
 async function getTypedCode(code, typeError) {
     try {
@@ -227,6 +228,11 @@ async function runTests(typeChecker = pyrightChecker) {
     }
 
     console.log(`All tests completed. Failures: ${failureCount} / ${totalTests}`);
+    return failureCount;
 }
 
-runTests();
+const pyrightErrors = runTests(pyrightChecker);
+const pyreflyErrors = runTests(pyreflyChecker);
+
+console.log('pyrightErrors ', pyrightErrors);
+console.log('pyrefly ', pyreflyErrors);
